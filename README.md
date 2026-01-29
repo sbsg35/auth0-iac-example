@@ -1,6 +1,6 @@
-# Using Auth0 CLI to Create Client Grants
+# Auth0 basics and using terraform to create Auth0 resources
 
-# Using Auth0 CLI to Create Client Grants
+## Using Auth0 CLI to Create Client Grants
 
 auth0 login --scopes create:client_grants
 
@@ -102,3 +102,219 @@ allowed_origins: Which domains can make direct API calls to Auth0 from the brows
 | You want to get a list of all users          | Management API (via M2M token)      |
 | A user wants to change their profile picture | Management API (via User-level JWT) |
 | Your backend needs to verify a user          | You create a Custom API in Auth0    |
+
+## Auth0 Managed Certs Flow
+
+─────────────────────────────────────────────────────────────────────────────┐
+│ RUNTIME FLOW (Every login) │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+User visits your app → Clicks "Login" → Redirected to auth.happynewyear.world
+
+    ┌────────┐         ┌────────────┐         ┌─────────────────┐
+    │  User  │ ──DNS──→│ Your DNS   │ ──→     │ CNAME resolves  │
+    │Browser │         │ Provider   │         │ to Auth0 edge   │
+    └────────┘         └────────────┘         └─────────────────┘
+         │                                            │
+         │                                            ▼
+         │                                   ┌─────────────────┐
+         │                                   │  Auth0's Edge   │
+         │                                   │    Server       │
+         │                                   │ (has your cert) │
+         │                                   └─────────────────┘
+         │                                            │
+         │◄───────────── HTTPS Response ──────────────┘
+         │               (SSL with your cert for
+         │                auth.happynewyear.world)
+         ▼
+    ┌────────┐
+    │ User   │  Sees: 🔒 auth.happynewyear.world
+    │ Browser│  Login page loads securely
+    └────────┘
+
+Why You Need a Custom API for custom domains
+The Problem
+When you call getAccessTokenSilently() without an audience:
+
+Auth0 returns an opaque (encrypted) token
+This token is only for Auth0's internal use (userinfo endpoint)
+You cannot decode it - it's encrypted, not signed
+The Solution
+When you specify an audience (API identifier):
+
+Auth0 returns a JWT (JSON Web Token)
+The JWT is signed (not encrypted) - you can decode and verify it
+It contains claims about the user and their permissions
+The Flow
+What the Custom API Represents
+The auth0_resource_server (API) represents your backend service:
+
+The identifier (https://api.happynewyear.world) doesn't need to be a real URL - it's just a unique identifier that:
+
+Your frontend requests tokens for
+Your backend validates tokens against
+JWT Structure (What You Get)
+Why skip_consent_for_verifiable_first_party_clients?
+Without it, Auth0 shows a consent screen:
+
+"9Now App wants to access Happy New Year API. Allow?"
+
+This makes sense for third-party apps but not for your own apps. Setting this to true skips the prompt for your first-party clients.
+
+Summary: The custom API tells Auth0 "issue a JWT that my backend can validate" instead of an opaque token only Auth0 can use.
+
+The API doesn't matter much at all
+
+The API identifier (https://api.happynewyear.world) is just a unique string - it's not an actual URL that Auth0 calls.
+
+What it's actually used for:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      IT'S JUST A LABEL                          │
+└─────────────────────────────────────────────────────────────────┘
+
+Frontend (React):
+  audience: "https://api.happynewyear.world"
+      │
+      ▼
+Auth0: "Ah, they want a token FOR 'https://api.happynewyear.world'"
+      │
+      ▼
+JWT contains:
+  {
+    "aud": "https://api.happynewyear.world",  ← Just a string in the token
+    ...
+  }
+```
+
+You could use anything:
+
+```
+# All of these would work:
+identifier = "https://api.happynewyear.world"  # Looks like URL (convention)
+identifier = "my-cool-api"                      # Plain string
+identifier = "urn:my-api:production"            # URN format
+identifier = "happynewyear-api"                 # Whatever you want
+```
+
+# All of these would work:identifier = "https://api.happynewyear.world"  # Looks like URL (convention)identifier = "my-cool-api"                      # Plain stringidentifier = "urn:my-api:production"            # URN formatidentifier = "happynewyear-api"                 # Whatever you want
+When would you actually use it?
+IF you build a backend later, you'd validate incoming JWTs:
+
+```
+// Backend (hypothetical)
+const decoded = verifyJWT(token);
+if (decoded.aud !== "https://api.happynewyear.world") {
+  throw new Error("Token not intended for this API");
+}
+```
+
+# Auth0 m2m clients with API
+
+Great question! It depends on **who/what** is calling your API:
+
+## Scenario 1: Users from different brands (SPA/Web Apps)
+
+**Each brand = separate SPA client, same API**
+
+```
+┌─────────────────┐     ┌─────────────────┐
+│   9Now App      │     │   Stan App      │
+│   (SPA Client)  │     │   (SPA Client)  │
+└────────┬────────┘     └────────┬────────┘
+         │                       │
+         │  User logs in         │  User logs in
+         │  Gets JWT with        │  Gets JWT with
+         │  aud: "my-api"        │  aud: "my-api"
+         │                       │
+         └───────────┬───────────┘
+                     │
+                     ▼
+          ┌─────────────────────┐
+          │     Your API        │
+          │  (One API resource) │
+          └─────────────────────┘
+```
+
+**No M2M needed** - users authenticate via SPA clients.
+
+---
+
+## Scenario 2: Backend services calling your API (M2M)
+
+**Each service = separate M2M client**
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  9Now Backend   │     │  Stan Backend   │     │  Analytics Svc  │
+│  (M2M Client)   │     │  (M2M Client)   │     │  (M2M Client)   │
+└────────┬────────┘     └────────┬────────┘     └────────┬────────┘
+         │                       │                       │
+         │ client_credentials    │ client_credentials    │ client_credentials
+         │ grant                 │ grant                 │ grant
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                                 ▼
+                      ┌─────────────────────┐
+                      │     Your API        │
+                      │  (One API resource) │
+                      └─────────────────────┘
+```
+
+**Yes, separate M2M apps** - each backend service gets its own `client_id` + `client_secret`.
+
+---
+
+## Why separate M2M apps per service?
+
+| Reason                 | Benefit                                                         |
+| ---------------------- | --------------------------------------------------------------- |
+| **Security isolation** | Revoke one service without affecting others                     |
+| **Different scopes**   | 9Now backend gets `read:content`, Analytics gets `read:metrics` |
+| **Audit trail**        | Know which service made which API call                          |
+| **Rate limiting**      | Apply different limits per service                              |
+
+---
+
+## Your Current Setup
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Your Auth0 Tenant                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  SPA Clients (for users):          API:                         │
+│  ┌─────────────┐ ┌─────────────┐   ┌─────────────────────────┐ │
+│  │ 9Now Client │ │ Stan Client │   │ api.happynewyear.world  │ │
+│  └─────────────┘ └─────────────┘   └─────────────────────────┘ │
+│                                                                 │
+│  M2M Clients (for backends):       Management API:              │
+│  ┌─────────────────────────────┐   ┌─────────────────────────┐ │
+│  │ Terraform Provider (M2M)   │   │ Auth0 Management API    │ │
+│  └─────────────────────────────┘   └─────────────────────────┘ │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Summary:**
+
+- **Users** → SPA clients (9Now, Stan) → Your API
+- **Backend services** → M2M clients (one per service) → Your API or Management API
+  ┌─────────────────┐ ┌─────────────────┐
+  │ 9Now App │ │ Stan App │
+  │ (SPA Client) │ │ (SPA Client) │
+  └────────┬────────┘ └────────┬────────┘
+  │ │
+  │ User logs in │ User logs in
+  │ Gets JWT with │ Gets JWT with
+  │ aud: "my-api" │ aud: "my-api"
+  │ │
+  └───────────┬───────────┘
+  │
+  ▼
+  ┌─────────────────────┐
+  │ Your API │
+  │ (One API resource) │
+  └─────────────────────┘

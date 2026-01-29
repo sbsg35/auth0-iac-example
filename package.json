@@ -16,6 +16,7 @@
     "@auth0/actions": "^0.12.0",
     "@rollup/plugin-typescript": "^12.1.2",
     "@types/node": "^25.1.0",
+    "axios": "^1.13.4",
     "rollup": "^4.28.1",
     "tslib": "^2.8.1",
     "typescript": "^5.7.2"

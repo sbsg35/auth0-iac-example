@@ -4,6 +4,11 @@ resource "auth0_action" "roles_action" {
   runtime = "node22"
   deploy  = true
   code    = file("${path.module}/../dist/post-login-action.js")
+  dependencies {
+    name    = "axios"
+    version = "1.13.4"
+  }
+
 
   supported_triggers {
     id      = "post-login"
