@@ -12,13 +12,11 @@ const clients = {
   },
 };
 
-const selectedClient = clients.stan;
-
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Auth0Provider
       domain="login.happynewyear.world"
-      clientId={selectedClient.clientId}
+      clientId={clients.stan.clientId}
       authorizationParams={{
         redirect_uri: `${window.location.origin}/callback`,
         audience: "https://api.happynewyear.world",

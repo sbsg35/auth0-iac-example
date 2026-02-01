@@ -1,15 +1,24 @@
-# Branding with custom Universal Login template
-resource "auth0_branding" "brand" {
-  logo_url = "https://uat.login.nine.com.au/client-images/themes/9now/client-logo.svg?v=1611008630764"
+# Prompts - Set to Classic Universal Login experience
 
-  colors {
-    primary         = "#19BEFF"
-    page_background = "#FFFFFF"
-  }
+resource "auth0_prompt" "prompts" {
+  universal_login_experience = "new"
+}
+
+# Branding with custom Universal Login template
+# for custom universal login html file, we need a custom domain to be set up in auth0
+# this is because auth0 doesn't want to allow arbitrary html to be hosted on their default domain for security reasons
+resource "auth0_branding" "brand" {
+  depends_on = [auth0_prompt.prompts]
 
   universal_login {
-    body = file("${path.module}/../src/universal-login/universal_login_body.html")
+    body = file("${path.module}/../src/html/universal_login.html")
   }
 }
 
+# resource "auth0_pages" "classic_login" {
+#   login {
+#     html    = file("${path.module}/../src/html/classic_login.html")
+#     enabled = true
+#   }
 
+# }

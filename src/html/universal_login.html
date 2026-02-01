@@ -1,0 +1,35 @@
+<!-- 
+See docs for customising
+https://auth0.com/docs/customize/login-pages/universal-login/customize-templates  
+-->
+
+
+<!DOCTYPE html>
+{% assign resolved_dir = dir | default: "auto" %}
+<html lang="{{locale}}" dir="{{resolved_dir}}">
+  <head>
+    {%- auth0:head -%}
+    <style>
+ 
+      {% if application.name == "nine_now" %}
+      #custom-prompt-logo {
+      background-image: url('https://uat.login.nine.com.au/client-images/themes/9now/client-logo.svg?v=1611008630764');
+      }
+      html {
+        --primary-color: #1abeff;
+      }
+      {% elsif application.name == "stan" %}
+      #custom-prompt-logo {
+      background-image: url('https://www.nineforbrands.com.au/wp-content/uploads/2020/07/Stan.jpg');
+      }
+      html {
+        --primary-color: #0072fb;
+      }
+      {% endif %}
+  </style>
+
+  </head>
+  <body class="_widget-auto-layout _use-custom-prompt-logo">
+    {%- auth0:widget -%}
+  </body>
+</html>

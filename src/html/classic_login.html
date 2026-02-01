@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Sign In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    }
+  </style>
+</head>
+<body>
+  <!--[if IE 8]>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/ie8/0.2.5/ie8.js"></script>
+  <![endif]-->
+
+  <!--[if lte IE 9]>
+  <script src="https://cdn.auth0.com/js/base64.js"></script>
+  <script src="https://cdn.auth0.com/js/es5-shim.min.js"></script>
+  <![endif]-->
+
+  <script src="https://cdn.auth0.com/js/lock/12.5/lock.min.js"></script>
+  <script>
+    // Decode Auth0 config injected at runtime
+    var config = JSON.parse(decodeURIComponent(escape(window.atob('@@config@@'))));
+
+    // Client IDs
+    var NINE_NOW_CLIENT_ID = 'sSdKg7Vg9Lkru5XNzrLkXx3KdjUZ8oXA';
+    var STAN_CLIENT_ID = 'nhoYvpvsv2Y1y4u74YmbHdp4GzapwpE2';
+
+    // Theme configurations
+    var themes = {
+      nine_now: {
+        primaryColor: '#1abeff',
+        logo: 'https://uat.login.nine.com.au/client-images/themes/9now/client-logo.svg?v=1611008630764',
+        background: 'linear-gradient(135deg, #0a1628 0%, #0d2137 50%, #1abeff 100%)'
+      },
+      stan: {
+        primaryColor: '#0072fb',
+        logo: 'https://www.nineforbrands.com.au/wp-content/uploads/2020/07/Stan.jpg',
+        background: 'linear-gradient(135deg, #001d3d 0%, #003566 50%, #0072fb 100%)'
+      },
+      default: {
+        primaryColor: '#635dff',
+        logo: '',
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
+      }
+    };
+
+    // Select theme based on client ID
+    var theme = themes.default;
+    if (config.clientID === NINE_NOW_CLIENT_ID) {
+      theme = themes.nine_now;
+    } else if (config.clientID === STAN_CLIENT_ID) {
+      theme = themes.stan;
+    }
+
+    // Apply background
+    document.body.style.background = theme.background;
+
+    // Lock options
+    var lockOptions = {
+      auth: {
+        redirectUrl: config.callbackURL,
+        responseType: (config.internalOptions || {}).response_type ||
+          (config.callbackOnLocationHash ? 'token' : 'code'),
+        params: config.internalOptions
+      },
+      configurationBaseUrl: config.clientConfigurationBaseUrl,
+      overrides: {
+        __tenant: config.auth0Tenant,
+        __token_issuer: config.authorizationServer.issuer
+      },
+      assetsUrl: config.assetsUrl,
+      allowedConnections: config.connection ? [config.connection] : null,
+      rememberLastLogin: !config.prompt || config.prompt.name !== 'login',
+      language: config.language,
+      languageBaseUrl: config.languageBaseUrl,
+      languageDictionary: config.dict,
+      closable: false,
+      defaultADUsernameFromEmailPrefix: false,
+      theme: {
+        primaryColor: theme.primaryColor,
+        logo: theme.logo,
+        authButtons: {
+          'google-oauth2': {
+            displayName: 'Continue with Google',
+            primaryColor: '#FFFFFF',
+            foregroundColor: '#000000'
+          }
+        }
+      }
+    };
+
+    // Initialize and show Lock
+    var lock = new Auth0Lock(config.clientID, config.auth0Domain, lockOptions);
+    lock.show();
+  </script>
+</body>
+</html>
