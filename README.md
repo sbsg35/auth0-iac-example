@@ -1,9 +1,30 @@
 # Auth0 Basics and Using Terraform to Create Auth0 Resources
 
+Step by step guide to set up Auth0 with Terraform.
+
+This will create the following resources in Auth0:
+
+- Post Login Action
+- Auth0 Applications (SPA Clients)
+- Auth0 M2M Clients
+- Auth0 APIs
+- If you opt with a custom domain
+  - Auth0 Custom Domain
+  - Custom brand pages with universal login
+
 ## Table of Contents
 
 - [Setting Up Auth0 with Terraform](#setting-up-auth0-with-terraform)
-- [Notes](#notes)
+  - [Step 1: Login to Auth0 CLI](#step-1-login-to-auth0-cli)
+  - [Step 2: Create a Machine-to-Machine Application](#step-2-create-a-machine-to-machine-application)
+  - [Step 3: Allow the M2M App to Call the Management API](#step-3-allow-the-m2m-app-to-call-the-management-api)
+  - [Step 4: Terraform apply](#step-4-terraform-apply)
+- [Auth0 Actions](#auth0-actions)
+  - [Building the post login action](#building-the-post-login-action)
+  - [Deploying the post login action](#deploying-the-post-login-action)
+  - [Actions docs](#actions-docs)
+- [M2M tokens](#m2m-tokens)
+- [Client side app](#client-side-app)
 
 ---
 
@@ -54,7 +75,7 @@ export AUTH0_MANAGEMENT_API_SCOPES=$(auth0 apis scopes list $AUTH0_MANAGEMENT_AP
 auth0 api post "client-grants" --data='{"client_id": "'$AUTH0_CLIENT_ID'", "audience": "'$AUTH0_MANAGEMENT_API_IDENTIFIER'", "scope":'$AUTH0_MANAGEMENT_API_SCOPES'}'
 ```
 
-### Update your auth0 domain
+### Step 4: Terraform apply
 
 In `terraform/variables.tf`, update the `auth0_domain` variable with your Auth0 domain.
 
@@ -95,7 +116,7 @@ GitHub Copilot: Read [](file:///Users/sukhraj.ghuman/playground/auth0-iac/src/po
 
 In Auth0 Actions, the `event` and `api` objects serve different purposes:
 
-## `event` (Read-Only Context)
+#### `event` (Read-Only Context)
 
 The **event** object provides **read-only information** about the login attempt. It contains:
 
@@ -110,7 +131,7 @@ In your code, you're reading from it:
 - `event.authorization` - checking if authorization exists
 - `event.user.app_metadata?.tesla_entitlement` - reading user metadata
 
-## `api` (Actions/Mutations)
+#### `api` (Actions/Mutations)
 
 The **api** object provides **methods to modify the authentication flow**. It lets you:
 
@@ -124,7 +145,7 @@ In your code, you're using it to add custom claims:
 
 - `api.accessToken.setCustomClaim()` - Adding the todo and tesla_entitlement claims
 
-## Summary
+#### Summary
 
 | Aspect     | `event`            | `api`               |
 | ---------- | ------------------ | ------------------- |
