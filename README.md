@@ -2,6 +2,9 @@
 
 Step by step guide to set up Auth0 with Terraform.
 
+In this mock example, we have a single tenant with multiple clients: Microsoft SPA, Tesla SPA, and a Machine-to-Machine (M2M) client each of these.
+There is also an event api which the m2m client can call with appropriate scopes.
+
 This will create the following resources in Auth0:
 
 - Post Login Action
