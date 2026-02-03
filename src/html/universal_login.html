@@ -1,8 +1,7 @@
 <!-- 
 See docs for customising
-https://auth0.com/docs/customize/login-pages/universal-login/customize-templates  
+https://auth0.com/docs/customize/login-pages/universal-login/customize-templates
 -->
-
 
 <!DOCTYPE html>
 {% assign resolved_dir = dir | default: "auto" %}
@@ -11,19 +10,19 @@ https://auth0.com/docs/customize/login-pages/universal-login/customize-templates
     {%- auth0:head -%}
     <style>
  
-      {% if application.name == "nine_now" %}
+      {% if application.name == "microsoft" %}
       #custom-prompt-logo {
-      background-image: url('https://uat.login.nine.com.au/client-images/themes/9now/client-logo.svg?v=1611008630764');
+      background-image: url('https://cdn.brandfetch.io/idchmboHEZ/theme/dark/symbol.svg?c=1dxbfHSJFAPEGdCLU4o5B');
       }
       html {
-        --primary-color: #1abeff;
+        --primary-color: #1abeff !important;
       }
-      {% elsif application.name == "stan" %}
+      {% elsif application.name == "tesla" %}
       #custom-prompt-logo {
-      background-image: url('https://www.nineforbrands.com.au/wp-content/uploads/2020/07/Stan.jpg');
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/b/bd/Tesla_Motors.svg');
       }
       html {
-        --primary-color: #0072fb;
+        --primary-color: #0072fb !important;
       }
       {% endif %}
   </style>

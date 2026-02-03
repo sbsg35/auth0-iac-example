@@ -1,7 +1,7 @@
 // Classic Universal Login - Lock Configuration
 // This will be inlined in the HTML template
 
-declare var Auth0Lock: any;
+import Auth0Lock from "auth0-lock";
 
 interface Auth0Config {
   clientID: string;
@@ -25,20 +25,20 @@ interface Auth0Config {
 }
 
 // Client IDs
-const NINE_NOW_CLIENT_ID = "sSdKg7Vg9Lkru5XNzrLkXx3KdjUZ8oXA";
-const STAN_CLIENT_ID = "nhoYvpvsv2Y1y4u74YmbHdp4GzapwpE2";
+const MICROSOFT_CLIENT_ID = "sSdKg7Vg9Lkru5XNzrLkXx3KdjUZ8oXA";
+const TESLA_CLIENT_ID = "nhoYvpvsv2Y1y4u74YmbHdp4GzapwpE2";
 
 // Theme configurations
 const themes = {
-  nine_now: {
+  microsoft: {
     primaryColor: "#1abeff",
-    logo: "https://uat.login.nine.com.au/client-images/themes/9now/client-logo.svg?v=1611008630764",
+    logo: "https://cdn.brandfetch.io/idchmboHEZ/theme/dark/symbol.svg?c=1dxbfHSJFAPEGdCLU4o5B",
     background:
       "linear-gradient(135deg, #0a1628 0%, #0d2137 50%, #1abeff 100%)",
   },
-  stan: {
+  tesla: {
     primaryColor: "#0072fb",
-    logo: "https://www.nineforbrands.com.au/wp-content/uploads/2020/07/Stan.jpg",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/b/bd/Tesla_Motors.svg",
     background:
       "linear-gradient(135deg, #001d3d 0%, #003566 50%, #0072fb 100%)",
   },
@@ -53,17 +53,17 @@ const themes = {
 export function initLock(config: Auth0Config) {
   // Determine theme based on clientID
   let theme = themes.default;
-  if (config.clientID === NINE_NOW_CLIENT_ID) {
-    theme = themes.nine_now;
-  } else if (config.clientID === STAN_CLIENT_ID) {
-    theme = themes.stan;
+  if (config.clientID === MICROSOFT_CLIENT_ID) {
+    theme = themes.microsoft;
+  } else if (config.clientID === TESLA_CLIENT_ID) {
+    theme = themes.tesla;
   }
 
   // Apply background
   document.body.style.background = theme.background;
 
   // Base Lock options
-  const lockOptions = {
+  const lockOptions: Auth0LockConstructorOptions = {
     auth: {
       redirectUrl: config.callbackURL,
       responseType:
@@ -72,12 +72,7 @@ export function initLock(config: Auth0Config) {
       params: config.internalOptions,
     },
     configurationBaseUrl: config.clientConfigurationBaseUrl,
-    overrides: {
-      __tenant: config.auth0Tenant,
-      __token_issuer: config.authorizationServer.issuer,
-    },
     assetsUrl: config.assetsUrl,
-    allowedConnections: config.connection ? [config.connection] : null,
     rememberLastLogin: !config.prompt || config.prompt.name !== "login",
     language: config.language,
     languageBaseUrl: config.languageBaseUrl,

@@ -16,14 +16,14 @@ export default [
     plugins: [typescript({ module: "es6" })],
   },
   // Lock configuration bundle for Universal Login
-  {
-    input: "src/lock.ts",
-    output: {
-      file: "dist/lock.bundle.js",
-      format: "iife",
-      name: "LockConfig",
-    },
-    external: ["auth0-lock"], // Load from CDN, don't bundle
-    plugins: [resolve(), commonjs(), typescript({ module: "es6" }), terser()],
-  },
+  // {
+  //   input: "src/lock.ts",
+  //   output: {
+  //     file: "dist/lock.bundle.js",
+  //     format: "iife",
+  //     name: "LockConfig",
+  //   },
+  //   external: ["auth0-lock"], // Load from CDN, don't bundle
+  //   plugins: [resolve(), commonjs(), typescript({ module: "es6" }), terser()],
+  // },
 ];

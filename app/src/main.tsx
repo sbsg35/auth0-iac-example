@@ -3,23 +3,20 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { Auth0Provider } from "@auth0/auth0-react";
 
-const clients = {
-  stan: {
-    clientId: "nhoYvpvsv2Y1y4u74YmbHdp4GzapwpE2",
-  },
-  nine: {
-    clientId: "sSdKg7Vg9Lkru5XNzrLkXx3KdjUZ8oXA",
-  },
-};
+// const MICROSOFT_CLIENT_ID = "TpgN27oSNheBNKvuftqtJNmcbNDe3uVU";
+const TESLA_CLIENT_ID = "rGOgGd77hAddDGIG7NtOeQzQbVYp4D0o";
+
+const AUTH0_DOMAIN = "";
+const AUTH0_AUDIENCE = "https://api.example.com";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Auth0Provider
-      domain="login.happynewyear.world"
-      clientId={clients.stan.clientId}
+      domain={AUTH0_DOMAIN}
+      clientId={TESLA_CLIENT_ID}
       authorizationParams={{
         redirect_uri: `${window.location.origin}/callback`,
-        audience: "https://api.happynewyear.world",
+        audience: AUTH0_AUDIENCE,
       }}
       cacheLocation="localstorage"
     >

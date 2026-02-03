@@ -1,9 +1,9 @@
 # Create a new Auth0 application for OIDC authentication
-resource "auth0_client" "nine_now_oidc_client" {
-  name                = "nine_now"
-  description         = "9now OIDC Client Created Through Terraform"
+resource "auth0_client" "microsoft_oidc_client" {
+  name                = "microsoft"
+  description         = "Microsoft OIDC Client Created Through Terraform"
   app_type            = "spa"
-  logo_uri            = "https://uat.login.nine.com.au/client-images/themes/9now/client-logo.svg?v=1611008630764"
+  logo_uri            = "https://cdn.brandfetch.io/idchmboHEZ/theme/dark/symbol.svg?c=1dxbfHSJFAPEGdCLU4o5B"
   callbacks           = ["http://localhost:3000/callback", "http://localhost:3000"]
   allowed_logout_urls = ["http://localhost:3000"]
   allowed_origins     = ["http://localhost:3000"]
@@ -16,13 +16,13 @@ resource "auth0_client" "nine_now_oidc_client" {
 }
 
 
-# stan client
+# tesla client
 
-resource "auth0_client" "stan_oidc_client" {
-  name        = "stan"
-  description = "stan OIDC Client Created Through Terraform"
+resource "auth0_client" "tesla_oidc_client" {
+  name        = "tesla"
+  description = "tesla OIDC Client Created Through Terraform"
   app_type    = "spa"
-  logo_uri    = "https://play-lh.googleusercontent.com/qSLEksYvGazk-b9Av7ey1OEKLq5czlK_klcHnuSR-h_oc3I41T7f4HmhSUUjqvRrvf8=w240-h480-rw"
+  logo_uri    = "https://upload.wikimedia.org/wikipedia/commons/b/bd/Tesla_Motors.svg"
   // Where Auth0 redirects users after login
   callbacks = ["http://localhost:3000/callback", "http://localhost:3000"]
   // allowed_logout_urls: Where Auth0 redirects users after logout
@@ -37,3 +37,4 @@ resource "auth0_client" "stan_oidc_client" {
     alg = "RS256"
   }
 }
+

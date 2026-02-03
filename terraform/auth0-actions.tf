@@ -9,7 +9,6 @@ resource "auth0_action" "roles_action" {
     version = "1.13.4"
   }
 
-
   supported_triggers {
     id      = "post-login"
     version = "v3"

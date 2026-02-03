@@ -11,6 +11,6 @@
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "m2m_token.js"],
   "exclude": ["node_modules", "dist"]
 }

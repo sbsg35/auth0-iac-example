@@ -1,9 +1,9 @@
-output "auth0_nine_now_client_id" {
+output "auth0_microsoft_client_id" {
   description = "Auth0 SPA Client ID"
-  value       = auth0_client.nine_now_oidc_client.client_id
+  value       = auth0_client.microsoft_oidc_client.client_id
 }
 
-output "auth0_stan_oidc_client" {
+output "auth0_tesla_oidc_client" {
   description = "Auth0 SPA Client ID"
-  value       = auth0_client.stan_oidc_client.client_id
+  value       = auth0_client.tesla_oidc_client.client_id
 }

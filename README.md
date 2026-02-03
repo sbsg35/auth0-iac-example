@@ -2,279 +2,8 @@
 
 ## Table of Contents
 
-- [Core Concepts](#core-concepts)
-- [Key Definitions](#key-definitions)
-- [Authentication Flows](#authentication-flows)
-- [Working with APIs](#working-with-apis)
-- [Multi-Brand Architecture](#multi-brand-architecture)
 - [Setting Up Auth0 with Terraform](#setting-up-auth0-with-terraform)
 - [Notes](#notes)
-
----
-
-## Core Concepts
-
-### Management API
-
-- Each tenant has a single management API identified by
-  the audience `https://YOUR_DOMAIN/api/v2/`
-  It is used to manage the tenant.
-
-### Custom APIs
-
-- You can create your own APIs in Auth0.
-  Each API has its own unique identifier (audience).
-- API is the "listener"
-- e.g. `www.events.nine.com.au`
-- add scopes here: read:events, create:events, delete:events
-
-### Applications
-
-- Application is like a passport
-
-#### M2M (Machine-to-Machine)
-
-- Used by machines
-- Each app created has it's own client_id and client_secret
-- Used to authenticate the app when calling an API
-- Allows you to customise login experience
-- E.g SPA
-- E.g. M2M: server to server communication
-
-#### Generic Apps
-
-- Used by humans
-- Login screens
-- E.g. Regular Web App, SPA
-
-### Client Grants
-
-Client grants authorize machine-to-machine (M2M) applications to access Auth0 Management APIs or your own APIs. They define which APIs a specific application can call and with what permissions (scopes).
-
-client_grants determines which application can request tokens from a specific API
-
----
-
-## Key Definitions
-
-| Term                | Description                                                              |
-| ------------------- | ------------------------------------------------------------------------ |
-| callbacks           | Where Auth0 redirects users after login                                  |
-| allowed_logout_urls | Where Auth0 redirects users after logout                                 |
-| allowed_origins     | Which domains can make direct API calls to Auth0 from the browser (CORS) |
-
-| Action                                       | API to Use                          |
-| -------------------------------------------- | ----------------------------------- |
-| A user logs in to Brand A                    | Authentication API                  |
-| You want to get a list of all users          | Management API (via M2M token)      |
-| A user wants to change their profile picture | Management API (via User-level JWT) |
-| Your backend needs to verify a user          | You create a Custom API in Auth0    |
-
----
-
-## Authentication Flows
-
-### Auth0 Managed Certs Flow
-
-```
-─────────────────────────────────────────────────────────────────────────────┐
-│                         RUNTIME FLOW (Every login)                          │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-User visits your app → Clicks "Login" → Redirected to auth.happynewyear.world
-
-    ┌────────┐         ┌────────────┐         ┌─────────────────┐
-    │  User  │ ──DNS──→│ Your DNS   │ ──→     │ CNAME resolves  │
-    │Browser │         │ Provider   │         │ to Auth0 edge   │
-    └────────┘         └────────────┘         └─────────────────┘
-         │                                            │
-         │                                            ▼
-         │                                   ┌─────────────────┐
-         │                                   │  Auth0's Edge   │
-         │                                   │    Server       │
-         │                                   │ (has your cert) │
-         │                                   └─────────────────┘
-         │                                            │
-         │◄───────────── HTTPS Response ──────────────┘
-         │               (SSL with your cert for
-         │                auth.happynewyear.world)
-         ▼
-    ┌────────┐
-    │ User   │  Sees: 🔒 auth.happynewyear.world
-    │ Browser│  Login page loads securely
-    └────────┘
-```
-
----
-
-## Working with APIs
-
-### Why You Need a Custom API (for Custom Domains)
-
-#### The Problem
-
-When you call getAccessTokenSilently() without an audience:
-
-- Auth0 returns an opaque (encrypted) token
-- This token is only for Auth0's internal use (userinfo endpoint)
-- You cannot decode it - it's encrypted, not signed
-
-#### The Solution
-
-When you specify an audience (API identifier):
-
-- Auth0 returns a JWT (JSON Web Token)
-- The JWT is signed (not encrypted) - you can decode and verify it
-- It contains claims about the user and their permissions
-
-### What the Custom API Represents
-
-The auth0_resource_server (API) represents your backend service:
-
-The identifier (https://api.happynewyear.world) doesn't need to be a real URL - it's just a unique identifier that:
-
-- Your frontend requests tokens for
-- Your backend validates tokens against
-
-### The API Identifier is Just a Label
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      IT'S JUST A LABEL                          │
-└─────────────────────────────────────────────────────────────────┘
-
-Frontend (React):
-  audience: "https://api.happynewyear.world"
-      │
-      ▼
-Auth0: "Ah, they want a token FOR 'https://api.happynewyear.world'"
-      │
-      ▼
-JWT contains:
-  {
-    "aud": "https://api.happynewyear.world",  ← Just a string in the token
-    ...
-  }
-```
-
-You could use anything:
-
-```terraform
-# All of these would work:
-identifier = "https://api.happynewyear.world"  # Looks like URL (convention)
-identifier = "my-cool-api"                      # Plain string
-identifier = "urn:my-api:production"            # URN format
-identifier = "happynewyear-api"                 # Whatever you want
-```
-
-### When Would You Actually Use It?
-
-IF you build a backend later, you'd validate incoming JWTs:
-
-```javascript
-// Backend (hypothetical)
-const decoded = verifyJWT(token);
-if (decoded.aud !== "https://api.happynewyear.world") {
-  throw new Error("Token not intended for this API");
-}
-```
-
-### Why skip_consent_for_verifiable_first_party_clients?
-
-Without it, Auth0 shows a consent screen:
-
-"9Now App wants to access Happy New Year API. Allow?"
-
-This makes sense for third-party apps but not for your own apps. Setting this to true skips the prompt for your first-party clients.
-
-**Summary:** The custom API tells Auth0 "issue a JWT that my backend can validate" instead of an opaque token only Auth0 can use.
-
----
-
-## Multi-Brand Architecture
-
-### Scenario 1: Users from Different Brands (SPA/Web Apps)
-
-**Each brand = separate SPA client, same API**
-
-```
-┌─────────────────┐     ┌─────────────────┐
-│   9Now App      │     │   Stan App      │
-│   (SPA Client)  │     │   (SPA Client)  │
-└────────┬────────┘     └────────┬────────┘
-         │                       │
-         │  User logs in         │  User logs in
-         │  Gets JWT with        │  Gets JWT with
-         │  aud: "my-api"        │  aud: "my-api"
-         │                       │
-         └───────────┬───────────┘
-                     │
-                     ▼
-          ┌─────────────────────┐
-          │     Your API        │
-          │  (One API resource) │
-          └─────────────────────┘
-```
-
-**No M2M needed** - users authenticate via SPA clients.
-
-### Scenario 2: Backend Services Calling Your API (M2M)
-
-**Each service = separate M2M client**
-
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  9Now Backend   │     │  Stan Backend   │     │  Analytics Svc  │
-│  (M2M Client)   │     │  (M2M Client)   │     │  (M2M Client)   │
-└────────┬────────┘     └────────┬────────┘     └────────┬────────┘
-         │                       │                       │
-         │ client_credentials    │ client_credentials    │ client_credentials
-         │ grant                 │ grant                 │ grant
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                                 ▼
-                      ┌─────────────────────┐
-                      │     Your API        │
-                      │  (One API resource) │
-                      └─────────────────────┘
-```
-
-**Yes, separate M2M apps** - each backend service gets its own `client_id` + `client_secret`.
-
-### Why Separate M2M Apps Per Service?
-
-| Reason                 | Benefit                                                         |
-| ---------------------- | --------------------------------------------------------------- |
-| **Security isolation** | Revoke one service without affecting others                     |
-| **Different scopes**   | 9Now backend gets `read:content`, Analytics gets `read:metrics` |
-| **Audit trail**        | Know which service made which API call                          |
-| **Rate limiting**      | Apply different limits per service                              |
-
-### Example Tenant Setup
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Your Auth0 Tenant                        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  SPA Clients (for users):          API:                         │
-│  ┌─────────────┐ ┌─────────────┐   ┌─────────────────────────┐ │
-│  │ 9Now Client │ │ Stan Client │   │ api.happynewyear.world  │ │
-│  └─────────────┘ └─────────────┘   └─────────────────────────┘ │
-│                                                                 │
-│  M2M Clients (for backends):       Management API:              │
-│  ┌─────────────────────────────┐   ┌─────────────────────────┐ │
-│  │ Terraform Provider (M2M)   │   │ Auth0 Management API    │ │
-│  └─────────────────────────────┘   └─────────────────────────┘ │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Summary:**
-
-- **Users** → SPA clients (9Now, Stan) → Your API
-- **Backend services** → M2M clients (one per service) → Your API or Management API
 
 ---
 
@@ -282,7 +11,14 @@ This makes sense for third-party apps but not for your own apps. Setting this to
 
 ### Step 1: Login to Auth0 CLI
 
+Create an auth0 account and a tenant.
+
 ```bash
+# install the cli
+brew tap auth0/auth0-cli
+brew install auth0
+
+# login to auth0 cli with create:client_grants scope
 auth0 login --scopes create:client_grants
 ```
 
@@ -304,20 +40,6 @@ export AUTH0_CLIENT_ID=$(echo $AUTH0_M2M_APP | jq -r '.client_id')
 export AUTH0_CLIENT_SECRET=$(echo $AUTH0_M2M_APP | jq -r '.client_secret')
 ```
 
-Example output:
-
-```json
-{
-  "client_id": "Lc4e0ZC9k7ATDM4Ot67E5p7m4dhigE6n",
-  "client_secret": "l70X-3d5iGkmKvZJ5lZpJu605TxvgwTzFNKKPUKNIVm6-0wdprFLOcYghn1LmdSN"
-}
-```
-
-```bash
-export AUTH0_CLIENT_ID="Lc4e0ZC9k7ATDM4Ot67E5p7m4dhigE6n"
-export AUTH0_CLIENT_SECRET="l70X-3d5iGkmKvZJ5lZpJu605TxvgwTzFNKKPUKNIVm6-0wdprFLOcYghn1LmdSN"
-```
-
 ### Step 3: Allow the M2M App to Call the Management API
 
 ```bash
@@ -332,10 +54,100 @@ export AUTH0_MANAGEMENT_API_SCOPES=$(auth0 apis scopes list $AUTH0_MANAGEMENT_AP
 auth0 api post "client-grants" --data='{"client_id": "'$AUTH0_CLIENT_ID'", "audience": "'$AUTH0_MANAGEMENT_API_IDENTIFIER'", "scope":'$AUTH0_MANAGEMENT_API_SCOPES'}'
 ```
 
+### Update your auth0 domain
+
+In `terraform/variables.tf`, update the `auth0_domain` variable with your Auth0 domain.
+
+Now you can terraform apply your Auth0 resources!
+
+```bash
+# Build the post-login action
+npm run build
+# Apply the terraform configuration
+cd terraform/
+terraform init
+terraform apply
+```
+
 ---
 
-## Notes
+## Auth0 Actions
 
-- When I create an auth0 spa application it has management api in the APIs section
-- This allows user to get a management API token
-- This token is very limited in what it can do
+- Actions are functions that can be executed at certain points in the Auth0 flow
+- There is one action called "Post Login"
+- It needs to be built and deployed
+
+### Building the post login action
+
+```bash
+npm run build
+```
+
+### Deploying the post login action
+
+To deploy, use terraform apply in the terraform/ directory after building the action.
+
+### Actions docs
+
+User: what is the difference between event and api?
+
+GitHub Copilot: Read [](file:///Users/sukhraj.ghuman/playground/auth0-iac/src/post-login-action.ts)
+
+In Auth0 Actions, the `event` and `api` objects serve different purposes:
+
+## `event` (Read-Only Context)
+
+The **event** object provides **read-only information** about the login attempt. It contains:
+
+- **`event.user`** - Details about the user (email, metadata, identities)
+- **`event.authorization`** - Info about the authorization (if successful)
+- **`event.request`** - HTTP request details (IP, user agent, etc.)
+- **`event.connection`** - The connection used to authenticate
+- **`event.client`** - The application/client details
+
+In your code, you're reading from it:
+
+- `event.authorization` - checking if authorization exists
+- `event.user.app_metadata?.tesla_entitlement` - reading user metadata
+
+## `api` (Actions/Mutations)
+
+The **api** object provides **methods to modify the authentication flow**. It lets you:
+
+- **`api.accessToken.setCustomClaim()`** - Add custom claims to the access token
+- **`api.idToken.setCustomClaim()`** - Add custom claims to the ID token
+- **`api.user.setAppMetadata()`** - Update user's app metadata
+- **`api.access.deny()`** - Deny the login
+- **`api.redirect.sendUserTo()`** - Redirect the user mid-flow
+
+In your code, you're using it to add custom claims:
+
+- `api.accessToken.setCustomClaim()` - Adding the todo and tesla_entitlement claims
+
+## Summary
+
+| Aspect     | `event`            | `api`               |
+| ---------- | ------------------ | ------------------- |
+| Purpose    | **Read** context   | **Write** changes   |
+| Mutability | Read-only          | Methods to modify   |
+| Example    | Who is logging in? | What should happen? |
+
+Think of `event` as "what happened" and `api` as "what to do about it."
+
+## M2M tokens
+
+Run the m2m_token.sh script to get a token for the Auth0 Management API using the M2M app created earlier.
+
+```bash
+./m2m_token.sh
+```
+
+## Client side app
+
+```
+cd app
+npm install
+npm run dev
+```
+
+In the app/src/main.tsx file, update the AUTH0_DOMAIN, AUTH0_AUDIENCE, and client IDs for the applications.
