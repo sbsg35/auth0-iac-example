@@ -36,6 +36,21 @@ function App() {
     return <div>Oops... {error.message}</div>;
   }
 
+  if (isAuthenticated && !user?.email_verified) {
+    return (
+      <div>
+        Your email is not verified!
+        <button
+          onClick={() =>
+            logout({ logoutParams: { returnTo: window.location.origin } })
+          }
+        >
+          Logout
+        </button>
+      </div>
+    );
+  }
+
   if (isAuthenticated) {
     return (
       <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
