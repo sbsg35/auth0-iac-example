@@ -12,8 +12,38 @@ type AppMetadata = {
   the_age?: "paid" | "free";
 };
 
+type Clients = "stan" | "nine_now" | "afr" | "the_age";
+
+const clientEntitlementsMap: Record<Clients, string[]> = {
+  stan: ["afr", "the_age"],
+  nine_now: ["afr", "the_age", "stan"],
+  afr: ["the_age", "stan"],
+  the_age: [],
+};
+
+const getEntitlementsForClient = (
+  clientName: Clients,
+  appMeta: AppMetadata,
+) => {
+  const entitlements: Record<string, unknown> = {};
+  const clientEntitlements = clientEntitlementsMap[clientName];
+
+  clientEntitlements.forEach((entitlement) => {
+    if (appMeta[entitlement as keyof AppMetadata]) {
+      entitlements[entitlement] = appMeta[entitlement as keyof AppMetadata];
+    }
+  });
+
+  return entitlements;
+};
+
 export const onExecutePostLogin = async (event: Event, api: PostLoginAPI) => {
   const app_meta = event.user.app_metadata as AppMetadata;
+  const clientName = event.client.name as Clients;
 
-  api.accessToken.setCustomClaim("entitlement", app_meta);
+  const entitlements = getEntitlementsForClient(clientName, app_meta);
+
+  const namespace = "https://login.nine.com.au/entitlements";
+
+  api.accessToken.setCustomClaim(`${namespace}`, entitlements);
 };
