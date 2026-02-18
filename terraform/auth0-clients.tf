@@ -1,9 +1,9 @@
 # Create a new Auth0 application for OIDC authentication
-resource "auth0_client" "microsoft_oidc_client" {
-  name                = "microsoft"
-  description         = "Microsoft OIDC Client Created Through Terraform"
+resource "auth0_client" "nine_oidc_client" {
+  name                = "nine"
+  description         = "Nine OIDC Client Created Through Terraform"
   app_type            = "spa"
-  logo_uri            = "https://cdn.brandfetch.io/idchmboHEZ/theme/dark/symbol.svg?c=1dxbfHSJFAPEGdCLU4o5B"
+  logo_uri            = "https://login.nine.com.au/client-images/themes/9now/client-logo.svg?v=1599526833403"
   callbacks           = ["http://localhost:3000/callback", "http://localhost:3000"]
   allowed_logout_urls = ["http://localhost:3000"]
   allowed_origins     = ["http://localhost:3000"]
@@ -16,13 +16,13 @@ resource "auth0_client" "microsoft_oidc_client" {
 }
 
 
-# tesla client
+# stan client
 
-resource "auth0_client" "tesla_oidc_client" {
-  name        = "tesla"
-  description = "tesla OIDC Client Created Through Terraform"
+resource "auth0_client" "stan_oidc_client" {
+  name        = "stan"
+  description = "stan OIDC Client Created Through Terraform"
   app_type    = "spa"
-  logo_uri    = "https://upload.wikimedia.org/wikipedia/commons/b/bd/Tesla_Motors.svg"
+  logo_uri    = "https://www.stan.com.au/logo-square.png"
   // Where Auth0 redirects users after login
   callbacks = ["http://localhost:3000/callback", "http://localhost:3000"]
   // allowed_logout_urls: Where Auth0 redirects users after logout

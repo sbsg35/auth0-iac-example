@@ -2,7 +2,7 @@
 
 Step by step guide to set up Auth0 with Terraform.
 
-In this mock example, we have a single tenant with multiple clients: Microsoft SPA, Tesla SPA, and a Machine-to-Machine (M2M) client each of these.
+In this mock example, we have a single tenant with multiple clients: Nine SPA, Stan SPA, and a Machine-to-Machine (M2M) client each of these.
 There is also an event api which the m2m client can call with appropriate scopes.
 
 This will create the following resources in Auth0:
@@ -32,6 +32,11 @@ This will create the following resources in Auth0:
 ---
 
 ## Setting Up Auth0 with Terraform
+
+## Prerequisites
+
+- A paid Auth0 tenant (required for custom domains and branding). Alternatively, you can use a free tenant but skip the custom domain and branding steps.
+- When you first sign up Auth0, you get a 21 day free trial of the paid features, so you can use that to follow along with all the steps.
 
 ### Step 1: Login to Auth0 CLI
 
@@ -132,7 +137,7 @@ The **event** object provides **read-only information** about the login attempt.
 In your code, you're reading from it:
 
 - `event.authorization` - checking if authorization exists
-- `event.user.app_metadata?.tesla_entitlement` - reading user metadata
+- `event.user.app_metadata?.stan_entitlement` - reading user metadata
 
 #### `api` (Actions/Mutations)
 
@@ -146,7 +151,7 @@ The **api** object provides **methods to modify the authentication flow**. It le
 
 In your code, you're using it to add custom claims:
 
-- `api.accessToken.setCustomClaim()` - Adding the todo and tesla_entitlement claims
+- `api.accessToken.setCustomClaim()` - Adding the todo and stan_entitlement claims
 
 #### Summary
 
@@ -158,14 +163,6 @@ In your code, you're using it to add custom claims:
 
 Think of `event` as "what happened" and `api` as "what to do about it."
 
-## M2M tokens
-
-Run the m2m_token.sh script to get a token for the Auth0 Management API using the M2M app created earlier.
-
-```bash
-./m2m_token.sh
-```
-
 ## Client side app
 
 ```
@@ -175,3 +172,8 @@ npm run dev
 ```
 
 In the app/src/main.tsx file, update the AUTH0_DOMAIN, AUTH0_AUDIENCE, and client IDs for the applications.
+
+## Admin
+
+- copy .env.example to .env and update the values with your Auth0 tenant and M2M app details.
+- update-user-metadata.ts - script to update user metadata for a given user. This is useful for testing the post-login action with different user metadata values.

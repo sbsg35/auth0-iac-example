@@ -2,6 +2,6 @@
 
 resource "auth0_custom_domain" "custom_domain" {
   count  = var.custom_domain != null ? 1 : 0
-  domain = "login.${var.custom_domain}"
+  domain = "auth.${var.custom_domain}"
   type   = var.custom_domain_type
 }

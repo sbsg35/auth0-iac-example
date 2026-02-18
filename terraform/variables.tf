@@ -1,11 +1,11 @@
 variable "auth0_domain" {
-  default     = "dev-jbxgr7rd2vsfqlqq.us.auth0.com"
+  default     = "nine-trx.au.auth0.com"
   description = "Auth0 domain"
 }
 
 variable "custom_domain" {
   type        = string
-  default     = null
+  default     = "happynewyear.world"
   description = "Custom domain for Auth0 tenant (optional)"
 }
 
