@@ -6,7 +6,7 @@
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest"
   },
   "keywords": [],
   "author": "",
@@ -19,9 +19,12 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
     "@types/auth0-lock": "^11.27.9",
+    "@types/jest": "^30.0.0",
     "@types/node": "^25.1.0",
     "axios": "^1.13.4",
+    "jest": "^30.2.0",
     "rollup": "^4.28.1",
+    "ts-jest": "^29.4.6",
     "tslib": "^2.8.1",
     "tsx": "^4.21.0",
     "typescript": "^5.7.2"
