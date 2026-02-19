@@ -177,3 +177,27 @@ In the app/src/main.tsx file, update the AUTH0_DOMAIN, AUTH0_AUDIENCE, and clien
 
 - copy .env.example to .env and update the values with your Auth0 tenant and M2M app details.
 - update-user-metadata.ts - script to update user metadata for a given user. This is useful for testing the post-login action with different user metadata values.
+
+## Forms and flows
+
+### Forms
+
+- Forms is a visual editor that allows you to create customizable forms that can be used to extend your identity flows with additional steps and business logic.
+- A controlled and secure experience within your tenant’s domain. No need to Redirect users to external sites.
+
+use cases:
+
+- Progressive profiling
+- Custom policies acceptance (e.g. age verification, terms of service, etc.)
+- Custom signup or login steps: verify email or phone numbers with OTP and account linking, or verify payment details with Stripe
+
+### Flows
+
+Below is copied from docs: https://auth0.com/docs/customize/forms/flows
+
+- Flows allow you to visually build the server-side logic that can be executed within your Forms and handle the collected information, integrate any service with an API or trigger automations.
+- Create custom server-side validations for your form steps.
+- Integrate with your own API making custom HTTP requests.
+- Integrate with 3rd parties using our out-of-the-box integrations.
+- Execute different business logic based based on user input or properties.
+- Validate data using JSON Web Tokens.
