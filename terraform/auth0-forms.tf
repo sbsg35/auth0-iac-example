@@ -43,31 +43,23 @@ resource "auth0_form" "progressive_profiling_form" {
   name = "progressive-profiling-form"
 
   start = jsonencode({
-    next_node = "step_details"
-    coordinates = {
-      x = 0
-      y = 0
-    }
+    next_node   = "step_details"
+    coordinates = { x = 0, y = 0 }
   })
 
   nodes = jsonencode([
     {
-      id   = "step_details"
-      type = "STEP"
-      coordinates = {
-        x = 250
-        y = 0
-      }
-      alias = "Details Step"
+      id          = "step_details"
+      type        = "STEP"
+      coordinates = { x = 250, y = 0 }
+      alias       = "Details Step"
       config = {
         components = [
           {
             id       = "rich_text_heading"
             category = "BLOCK"
             type     = "RICH_TEXT"
-            config = {
-              content = "<h1>We need more details</h1><p>To provide you with the best experience, we need a bit more information about you.</p>"
-            }
+            config   = { content = "<h1>We need more details</h1><p>To provide you with the best experience, we need a bit more information about you.</p>" }
           },
           {
             id       = "full_name"
@@ -76,28 +68,39 @@ resource "auth0_form" "progressive_profiling_form" {
             label    = "Full Name"
             required = true
           },
+          # --- ADDED GENDER FIELD START ---
+          {
+            id       = "gender"
+            category = "FIELD"
+            type     = "CHOICE"
+            label    = "Gender"
+            required = true
+            config = {
+              options = [
+                { label = "Male", value = "male" },
+                { label = "Female", value = "female" },
+                { label = "Other", value = "other" }
+              ]
+            }
+          },
+          # --- ADDED GENDER FIELD END ---
           {
             id       = "next_button"
             category = "BLOCK"
             type     = "NEXT_BUTTON"
-            config = {
-              text = "Continue"
-            }
+            config   = { text = "Continue" }
           }
         ]
         next_node = "flow_update_user"
       }
     },
     {
-      id   = "flow_update_user"
-      type = "FLOW"
-      coordinates = {
-        x = 800
-        y = 0
-      }
-      alias = "Update User Metadata"
+      id          = "flow_update_user"
+      type        = "FLOW"
+      coordinates = { x = 800, y = 0 }
+      alias       = "Update User Metadata"
       config = {
-        flow_id   = "${auth0_flow.progressive_profiling_flow.id}"
+        flow_id   = auth0_flow.progressive_profiling_flow.id
         next_node = "$ending"
       }
     }
@@ -105,10 +108,7 @@ resource "auth0_form" "progressive_profiling_form" {
 
   ending = jsonencode({
     resume_flow = true
-    coordinates = {
-      x = 1200
-      y = 0
-    }
+    coordinates = { x = 1200, y = 0 }
   })
 }
 
@@ -125,6 +125,7 @@ resource "auth0_flow" "progressive_profiling_flow" {
       changes = {
         user_metadata = {
           full_name = "{{fields.full_name}}"
+          gender    = "{{fields.gender}}"
         }
       }
       connection_id = "${auth0_flow_vault_connection.forms_management_vault_connection.id}" #  Altenative ways: (connection_id = auth0_flow_vault_connection.my_connection.id) or using terraform variables
