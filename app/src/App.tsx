@@ -125,7 +125,20 @@ function App() {
       </div>
     );
   } else {
-    return <button onClick={() => loginWithRedirect()}>Log in</button>;
+    return (
+      <>
+        <button onClick={() => loginWithRedirect()}>Log in</button>
+        <button
+          onClick={() =>
+            loginWithRedirect({
+              authorizationParams: { screen_hint: "signup" },
+            })
+          }
+        >
+          Sign up
+        </button>
+      </>
+    );
   }
 }
 

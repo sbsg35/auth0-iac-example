@@ -1,7 +1,7 @@
 import typescript from "@rollup/plugin-typescript";
 
 export default {
-  input: ["src/post-login-action.ts"],
+  input: ["src/post-login-action.ts", "src/post-registration-action.ts"],
   output: {
     strict: false,
     format: "cjs",
