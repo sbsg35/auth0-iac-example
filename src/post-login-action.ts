@@ -37,7 +37,19 @@ const getEntitlementsForClient = (
   return entitlements;
 };
 
+/**
+ * @param {Event} event - Details about the user and the context in which they are logging in.
+ * @param {PostLoginAPI} api - Interface whose methods can be used to change the behavior of the login.
+ */
 export const onExecutePostLogin = async (event: Event, api: PostLoginAPI) => {
+  const FORM_ID = event.secrets.PROGRESSIVE_PROFILE_FORM_ID;
+
+  if (!event.user.user_metadata.full_name && FORM_ID) {
+    api.prompt.render(FORM_ID);
+  }
+};
+
+export const onContinuePostLogin = async (event: Event, api: PostLoginAPI) => {
   const app_meta = event.user.app_metadata as AppMetadata;
   const clientName = event.client.name as Clients;
 

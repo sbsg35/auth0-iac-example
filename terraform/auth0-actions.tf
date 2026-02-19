@@ -9,6 +9,11 @@ resource "auth0_action" "roles_action" {
     version = "1.13.4"
   }
 
+  secrets {
+    name  = "PROGRESSIVE_PROFILE_FORM_ID"
+    value = auth0_form.progressive_profiling_form.id
+  }
+
   supported_triggers {
     id      = "post-login"
     version = "v3"
